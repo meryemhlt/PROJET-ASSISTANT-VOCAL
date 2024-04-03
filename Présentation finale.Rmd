@@ -1,0 +1,174 @@
+---
+title: "ASSISTANT VOCAL"
+author: "Meryem Halheit, Farida Bigbala"
+output:
+  slidy_presentation: default
+  powerpoint_presentation: default
+  html_document:
+    df_print: paged
+  beamer_presentation: default
+subtitle: Exploration de la recherche historique automatisée
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+Assistant vocal spécialisé dans la recherche et la présentation d'informations sur les dates historiques.
+
+Objectif : fournir aux utilisateurs un accès rapide et pratique à des données historiques pertinentes
+
+PLAN
+
+1.  Fonctionnement du code
+2.  Défis rencontrés et résolution du problème
+3.  Conclusion : axes d'amélioration et perspectives futures
+
+
+## 1. Fonctionnement du code
+
+1.1. Utilisation de Wikipédia, de ChatGPT et d'autres sources en ligne
+
+## Wikipédia
+
+```python
+import wikipedia
+
+def rechercher_sur_wikipedia(sujet):
+    try:
+        info = wikipedia.summary(sujet, sentences=2, auto_suggest=True, redirect=True)
+        return info
+    except:
+        return None
+```
+
+## ChatGPT
+
+```python
+import openai
+
+def rechercher_sur_chatgpt(question):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-1106",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": question}
+            ]
+        )
+        return response['choices'][0]['message']['content'].strip()
+    except:
+        return None
+```
+
+## Autres sources en ligne
+
+```python
+from googlesearch import search
+
+def rechercher_sur_autre_source(sujet):
+    try:
+        site_url = "https://archive.wikiwix.com/trinet/#/fr/"
+        query = f"{sujet} site:{site_url}"
+        result = next(search(query, num=1, stop=1, lang='fr'), None)
+
+        if result:
+            return f"Informations trouvées sur le site Wikiwix : {result}"
+        else:
+            return f"Aucune information trouvée sur le site Wikiwix pour {sujet}"
+    except:
+        return None
+```
+
+## 1.2. Principales fonctionnalités
+
+-   Gestion des requêtes utilisateur
+
+```python
+import speech_recognition as sr
+
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        audio = r.listen(source)
+        command = r.recognize_google(audio, language='fr-FR')
+        return command.lower()
+```
+
+-   Synthèse vocale des réponses
+
+```python
+from gtts import gTTS
+import playsound
+
+def speak(text):
+    tts = gTTS(text=text, lang='fr')
+    tts.save("output.mp3")
+    playsound.playsound("output.mp3")
+```
+
+-   Recherche de l'information
+
+```python
+def rechercher_information(sujet):
+    info_chatgpt = rechercher_sur_chatgpt(sujet)
+    if info_chatgpt:
+        return info_chatgpt
+    
+    info_wikipedia = rechercher_sur_wikipedia(sujet)
+    if info_wikipedia:
+        return info_wikipedia
+    
+    info_autre_source = rechercher_sur_autre_source(sujet)
+    if info_autre_source:
+        return info_autre_source
+    
+    return f"Aucune information trouvée pour {sujet}"
+```
+
+-   Interaction avec l'assistant vocal
+
+```python
+def main():
+    speak("Bonjour, je suis votre assistant virtuel spécialisé dans les dates d'événements historiques. Quelle date souhaitez-vous connaître ?")
+    while True:
+        command = listen()
+        if command:
+            command = command.lower()
+            if 'quitte' in command or 'arrête' in command or 'merci' in command:
+                speak("Je vous en prie, n'hésitez pas si vous avez une autre question!")
+                break
+            handle_date_question(command)
+```
+
+-   Gestion des questions
+
+```python
+def handle_date_question(question):
+    match = re.search(r"quelle est la date de (.+)", question, re.IGNORECASE)
+    if match:
+        topic = match.group(1)
+        info = rechercher_information(topic)
+        if not info:
+            speak(f"Je suis désolé, je n'ai pas trouvé d'informations pour {topic}.")
+        else:
+            speak(info)
+    else:
+        speak("Je suis désolé, je peux répondre uniquement aux questions sur les dates d'événements historiques. Veuillez formuler votre question comme suit : 'Quelle est la date de... ?'")
+```
+
+## 2. Défis rencontrés et résolution du problème
+
+```python
+openai.api_key = key
+
+response = openai.ChatCompletion.create
+```
+
+## 3. Conclusion : axes d'amélioration
+
+-   Exploitation des données structurées : inclure des bases de données historiques
+-   Personnalisation : réponses visuelles
+-   Fonctionnalités supplémentaires : préferences, sources d'informations, langues, intégration d'autres intelligence artificielle
